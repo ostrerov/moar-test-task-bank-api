@@ -7,6 +7,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Facades\AuthService as User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Request;
+use RuntimeException;
 
 class AuthController extends Controller
 {
@@ -19,10 +20,10 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $token = User::login($request->validated());
-
-        if (!$token) {
-            return $this->error('Unauthorized', 401);
+        try {
+            $token = User::login($request->validated());
+        } catch (RuntimeException $e) {
+            return $this->error($e->getMessage(), 401);
         }
 
         return $this->success(['token' => $token]);

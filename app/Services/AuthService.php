@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use RuntimeException;
 
 class AuthService
 {
@@ -24,12 +25,12 @@ class AuthService
         $key = 'login_attempts:' . request()->ip();
 
         if (RateLimiter::tooManyAttempts($key, 1)) {
-            abort(429, 'Too many login attempts. Try again later.');
+            throw new RuntimeException('Too many login attempts. Try again later.');
         }
 
         if (!Auth::attempt($data)) {
-            RateLimiter::hit($key, 300);
-            return null;
+            RateLimiter::hit($key);
+            throw new RuntimeException('Wrong password');
         }
 
         RateLimiter::clear($key);
